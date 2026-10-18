@@ -1,0 +1,76 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Physics & Engineering Tools</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f5f5fa;
+    margin: 0;
+    padding: 40px 20px;
+  }
+  .container {
+    max-width: 900px;
+    margin: auto;
+  }
+  h1, .subtitle {
+    text-align: center;
+  }
+  .subtitle {
+    color: #666;
+    margin-bottom: 40px;
+  }
+  .tools {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+  }
+  .tool {
+    background: white;
+    border-radius: 12px;
+    padding: 28px;
+    text-decoration: none;
+    color: #222;
+    box-shadow: 0 2px 6px #0001;
+    transition: transform 0.2s;
+  }
+  .tool:hover {
+    transform: translateY(-4px);
+  }
+  .tool h2 {
+    font-size: 21px;
+  }
+  .tool p {
+    color: #666;
+    line-height: 1.6;
+  }
+  .open {
+    color: #0878d1;
+    font-weight: bold;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Physics & Engineering Tools</h1>
+  <p class="subtitle">物理・工学計算ツール集</p>
+
+  <div class="tools">
+    <a class="tool" href="./frequency-wavelength/">
+      <h2>周波数 ↔ 波長</h2>
+      <p>周波数と波長をリアルタイムで相互変換します。</p>
+      <span class="open">ツールを開く →</span>
+    </a>
+
+    <a class="tool" href="./db-percentage/">
+      <h2>dB ↔ パーセンテージ</h2>
+      <p>電力比・振幅比に対応した相互変換を行います。</p>
+      <span class="open">ツールを開く →</span>
+    </a>
+  </div>
+</div>
+</body>
+</html>

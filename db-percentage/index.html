@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>dB ↔ パーセンテージ</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 40px;
+            background-color: #f4f4f9;
+        }
+        .flex-container {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            max-width: 860px;
+            margin: 0 auto;
+        }
+        .container {
+            flex: 1;
+            min-width: 300px;
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type="number"] {
+            -moz-appearance: textfield;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #eef9ff;
+            border-left: 5px solid #0076d1;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .container.reverse .result {
+            background-color: #f6f1ff;
+            border-left: 5px solid #6c5ce7;
+        }
+        
+        .copy-btn {
+            background: none;
+            border: none;
+            padding: 6px;
+            cursor: pointer;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background-color 0.2s;
+            position: relative;
+        }
+        .container .copy-btn:hover {
+            background-color: rgba(0, 118, 209, 0.1);
+        }
+        .container.reverse .copy-btn:hover {
+            background-color: rgba(108, 92, 231, 0.1);
+        }
+        
+        .copy-icon {
+            fill: none;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            width: 20px;
+            height: 20px;
+            transition: stroke 0.2s;
+        }
+        .container .copy-icon {
+            stroke: #0076d1;
+        }
+        .container.reverse .copy-icon {
+            stroke: #6c5ce7;
+        }
+
+        .tooltip {
+            position: absolute;
+            bottom: 110%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2ecc71;
+            color: #fff;
+            padding: 4px 8px;
+            font-size: 11px;
+            border-radius: 4px;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.2s, visibility 0.2s;
+            font-weight: normal;
+        }
+        .tooltip.show {
+            opacity: 1;
+            visibility: visible;
+        }
+    </style>
+</head>
+<body>
+
+<div class="flex-container">
+
+    <div class="container">
+        <h2>dB ➔ パーセンテージ</h2>
+        <div class="form-group">
+            <label for="db-input">dBを入力:</label>
+            <input type="number" id="db-input" placeholder="例: 3" step="any" oninput="calculatePercent()">
+        </div>
+        <div class="form-group">
+            <label for="db-type">計算の基準:</label>
+            <select id="db-type" onchange="calculatePercent()">
+                <option value="power" selected>電力比 (電力・エネルギーなど: 10log)</option>
+                <option value="amplitude">振幅比 (電圧・音圧など: 20log)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="percent-sig-figs">有効数字:</label>
+            <select id="percent-sig-figs" onchange="calculatePercent()">
+                <option value="2">2桁</option>
+                <option value="3" selected>3桁</option>
+                <option value="4">4桁</option>
+                <option value="5">5桁</option>
+            </select>
+        </div>
+        <div class="result">
+            <div>割合: <span id="percent-output">-</span> <span id="percent-unit-label"></span></div>
+            <button class="copy-btn" onclick="copyValue('percent-output', this)">
+                <svg class="copy-icon" viewBox="0 0 24 24">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span class="tooltip">コピーしました！</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="container reverse">
+        <h2>パーセンテージ ➔ dB</h2>
+        <div class="form-group">
+            <label for="percent-input">パーセンテージを入力 (%):</label>
+            <input type="number" id="percent-input" placeholder="例: 200" step="any" oninput="calculateDb()">
+        </div>
+        <div class="form-group">
+            <label for="percent-type">計算の基準:</label>
+            <select id="percent-type" onchange="calculateDb()">
+                <option value="power" selected>電力比 (電力・エネルギーなど: 10log)</option>
+                <option value="amplitude">振幅比 (電圧・音圧など: 20log)</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="db-sig-figs">有効数字:</label>
+            <select id="db-sig-figs" onchange="calculateDb()">
+                <option value="2">2桁</option>
+                <option value="3" selected>3桁</option>
+                <option value="4">4桁</option>
+                <option value="5">5桁</option>
+            </select>
+        </div>
+        <div class="result">
+            <div>デシベル: <span id="db-output">-</span> <span id="db-unit-label"></span></div>
+            <button class="copy-btn" onclick="copyValue('db-output', this)">
+                <svg class="copy-icon" viewBox="0 0 24 24">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                <span class="tooltip">コピーしました！</span>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function calculatePercent() {
+    const dbInput = document.getElementById('db-input').value;
+    const dbType = document.getElementById('db-type').value;
+    const sigFigs = parseInt(document.getElementById('percent-sig-figs').value);
+    const outputSpan = document.getElementById('percent-output');
+    const unitSpan = document.getElementById('percent-unit-label');
+
+    if (dbInput === "") {
+        outputSpan.textContent = "-";
+        unitSpan.textContent = "";
+        return;
+    }
+
+    const dbValue = parseFloat(dbInput);
+    const factor = (dbType === 'amplitude') ? 20 : 10;
+    
+    const ratio = Math.pow(10, dbValue / factor);
+    const percentValue = ratio * 100;
+
+    outputSpan.textContent = percentValue.toPrecision(sigFigs);
+    unitSpan.textContent = " %";
+}
+
+function calculateDb() {
+    const percentInput = document.getElementById('percent-input').value;
+    const percentType = document.getElementById('percent-type').value;
+    const sigFigs = parseInt(document.getElementById('db-sig-figs').value);
+    const outputSpan = document.getElementById('db-output');
+    const unitSpan = document.getElementById('db-unit-label');
+
+    if (!percentInput || percentInput <= 0) {
+        outputSpan.textContent = "-";
+        unitSpan.textContent = "";
+        return;
+    }
+
+    const percentValue = parseFloat(percentInput);
+    const ratio = percentValue / 100;
+    const factor = (percentType === 'amplitude') ? 20 : 10;
+
+    const dbValue = factor * Math.log10(ratio);
+
+    outputSpan.textContent = dbValue.toPrecision(sigFigs);
+    unitSpan.textContent = " dB";
+}
+
+function copyValue(outputId, buttonElement) {
+    const outputText = document.getElementById(outputId).textContent;
+    const tooltip = buttonElement.querySelector('.tooltip');
+    const icon = buttonElement.querySelector('.copy-icon');
+
+    if (outputText === "-") return;
+
+    navigator.clipboard.writeText(outputText).then(() => {
+        tooltip.classList.add('show');
+        const originalColor = icon.style.stroke;
+        icon.style.stroke = "#2ecc71";
+
+        setTimeout(() => {
+            tooltip.classList.remove('show');
+            icon.style.stroke = originalColor;
+        }, 1500);
+    }).catch(err => {
+        console.error('コピーに失敗しました: ', err);
+    });
+}
+</script>
+
+</body>
+</html>
