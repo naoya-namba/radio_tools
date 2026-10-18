@@ -46,11 +46,15 @@ input[type=number] {-moz-appearance:textfield;}
 // 天体を追加する場合は、この配列に1行追加してください。
 // 距離は代表値です。研究用途では採用文献の値を確認してください。
 const CELESTIAL_OBJECTS = [
-  { id: "LMC", name: "LMC（大マゼラン雲）", distance: 50, unit: "kpc" },
-  { id: "SMC", name: "SMC（小マゼラン雲）", distance: 62, unit: "kpc" },
-  { id: "M33", name: "M33（三角座銀河）", distance: 840, unit: "kpc" },
-  { id: "M31", name: "M31（アンドロメダ銀河）", distance: 780, unit: "kpc" },
-  { id: "M83", name: "M83（南の回転花火銀河）", distance: 4.9, unit: "Mpc" }
+  { id: "Orion", name: "Orion", distance: 410, unit: "pc" },
+  { id: "LMC", name: "LMC", distance: 50, unit: "kpc" },
+  { id: "SMC", name: "SMC", distance: 62, unit: "kpc" },
+  { id: "M33", name: "M33", distance: 840, unit: "kpc" },
+  { id: "M31", name: "M31", distance: 780, unit: "kpc" },
+  { id: "M83", name: "M83", distance: 4.9, unit: "Mpc" },
+  { id: "NGC2903", name: "NGC2903", distance: 9.3, unit: "Mpc" },
+  { id: "NGC3627", name: "NGC3627", distance: 11.1, unit: "Mpc" },
+  { id: "NGC3627", name: "Stephan's Quintet", distance: 88.6, unit: "Mpc" }
 ];
 const UNIT_MULTIPLIERS = { pc: 1, kpc: 1000, Mpc: 1000000 };
 const presets = Object.fromEntries(CELESTIAL_OBJECTS.map(obj => [obj.id, obj]));
