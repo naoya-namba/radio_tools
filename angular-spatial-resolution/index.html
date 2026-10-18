@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>角分解能 → 空間分解能</title>
+<style>
+body {font-family:sans-serif;margin:40px;background:#f4f4f9;}
+.flex-container {display:flex;gap:20px;flex-wrap:wrap;max-width:860px;margin:0 auto;}
+.container {flex:1;min-width:0;background:#fff;padding:20px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.1);}
+.form-group {margin-bottom:15px;}
+.input-row {display:flex;gap:10px;align-items:stretch;}
+.input-row input {flex:2;min-width:0;}
+.input-row select {flex:1;min-width:100px;}
+@media(max-width:380px){.input-row select{min-width:85px}}
+label {display:block;margin-bottom:5px;font-weight:bold;}
+input,select {width:100%;padding:8px;box-sizing:border-box;border:1px solid #ccc;border-radius:4px;}
+input[type=number]::-webkit-inner-spin-button,input[type=number]::-webkit-outer-spin-button {-webkit-appearance:none;margin:0;}
+input[type=number] {-moz-appearance:textfield;}
+.result {margin-top:20px;padding:10px;background:#eef9ff;border-left:5px solid #0076d1;font-weight:bold;display:flex;justify-content:space-between;align-items:center;}
+.copy-btn {background:none;border:0;padding:6px;cursor:pointer;color:#0076d1;font-size:20px;}
+.note {font-size:12px;color:#666;line-height:1.6;margin-top:14px;}
+@media(max-width:600px){body{margin:16px}.container{padding:16px}}
+</style>
+</head>
+<body>
+<div class="flex-container">
+ <div class="container">
+  <h2>角分解能 ➔ 空間分解能</h2>
+  <div class="form-group"><label for="object">天体を選択:</label>
+   <select id="object"><option value="manual" selected>手動入力</option></select>
+  </div>
+  <div class="form-group"><label for="distance">天体までの距離:</label><div class="input-row"><input id="distance" type="number" step="any" placeholder="例: 50"><select id="distance-unit" aria-label="距離の単位"><option value="1">pc</option><option value="1000" selected>kpc</option><option value="1000000">Mpc</option></select></div></div>
+  <div class="form-group"><label for="angle">角分解能:</label><div class="input-row"><input id="angle" type="number" step="any" placeholder="例: 10"><select id="angle-unit" aria-label="角度の単位"><option value="1" selected>arcsec</option><option value="60">arcmin</option></select></div></div>
+  <div class="form-group"><label for="sigfigs">有効数字:</label><select id="sigfigs"><option value="2">2桁</option><option value="3" selected>3桁</option><option value="4">4桁</option><option value="5">5桁</option></select></div>
+  <div class="result"><div>空間分解能: <span id="output">-</span> <span id="unit"></span></div><button class="copy-btn" id="copy" title="数値をコピー" aria-label="数値をコピー">▢</button></div>
+  <p class="note">天体の距離は計算用の代表値です。必要に応じて手動変更してください。</p>
+  <p class="note">小角近似 L ≈ Dθ（θ はラジアン）を使用。結果の単位は pc / kpc / Mpc に自動切り替えします。</p>
+ </div>
+</div>
+<script>
+// 天体を追加する場合は、この配列に1行追加してください。
+// 距離は代表値です。研究用途では採用文献の値を確認してください。
+const CELESTIAL_OBJECTS = [
+  { id: "Orion", name: "Orion", distance: 410, unit: "pc" },
+  { id: "LMC", name: "LMC", distance: 50, unit: "kpc" },
+  { id: "SMC", name: "SMC", distance: 62, unit: "kpc" },
+  { id: "M33", name: "M33", distance: 840, unit: "kpc" },
+  { id: "M31", name: "M31", distance: 780, unit: "kpc" },
+  { id: "M83", name: "M83", distance: 4.9, unit: "Mpc" },
+  { id: "M66", name: "M66", distance: 11, unit: "Mpc" },
+];
+const UNIT_MULTIPLIERS = { pc: 1, kpc: 1000, Mpc: 1000000 };
+const presets = Object.fromEntries(CELESTIAL_OBJECTS.map(obj => [obj.id, obj]));
+const objectSelect = document.getElementById('object');
+CELESTIAL_OBJECTS.forEach(obj => {
+  const option = document.createElement('option');
+  option.value = obj.id;
+  option.textContent = obj.name;
+  objectSelect.appendChild(option);
+});
+const $=id=>document.getElementById(id);
+function calculate(){
+ const d=Number($('distance').value),a=Number($('angle').value);
+ if(!$('distance').value||!$('angle').value||!Number.isFinite(d)||!Number.isFinite(a)||d<=0||a<=0){$('output').textContent='-';$('unit').textContent='';return;}
+ const pc=d*Number($('distance-unit').value)*a*Number($('angle-unit').value)*Math.PI/(180*3600);
+ let value=pc,unit='pc';
+ if(pc>=1e6){value=pc/1e6;unit='Mpc';}
+ else if(pc>=1e3){value=pc/1e3;unit='kpc';}
+ $('output').textContent=value.toPrecision(Number($('sigfigs').value));
+ $('unit').textContent=unit;
+}
+$('object').addEventListener('change',()=>{
+ const p=presets[$('object').value];
+ if(p){$('distance').value=p.distance;$('distance-unit').value=String(UNIT_MULTIPLIERS[p.unit]);}
+ calculate();
+});
+['distance','distance-unit'].forEach(id=>$(id).addEventListener(id==='distance'?'input':'change',()=>{$('object').value='manual';calculate();}));
+$('angle').addEventListener('input',calculate);
+['angle-unit','sigfigs'].forEach(id=>$(id).addEventListener('change',calculate));
+$('copy').addEventListener('click',async()=>{
+ if($('output').textContent==='-')return;
+ try{await navigator.clipboard.writeText($('output').textContent);$('copy').textContent='✓';setTimeout(()=>$('copy').textContent='▢',1500);}
+ catch(e){alert('コピーできませんでした');}
+});
+</script>
+</body></html>
